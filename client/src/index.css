@@ -1,19 +1,23 @@
 @import "tailwindcss";
 
 @theme {
-  --color-paper: #f4f3ef;
-  --color-ink: #1c1e21;
-  --color-amber: #ffb400;
+  /* Markenfarben Volkssolidarität (aus Logo/Schriftzug gemessen) */
+  --color-brand: #008c58;
+  --color-brand-dark: #017448;
+  --color-brand-red: #d3102d;
+  --color-brand-red-dark: #a90c23;
+  --color-paper: #f2f6f3;
+  --color-ink: #1a211d;
 }
 
 :root {
-  --fc-button-bg-color: #1c1e21;
-  --fc-button-border-color: #1c1e21;
-  --fc-button-hover-bg-color: #34373d;
-  --fc-button-hover-border-color: #34373d;
-  --fc-button-active-bg-color: #000000;
-  --fc-button-active-border-color: #000000;
-  --fc-today-bg-color: rgba(255, 180, 0, 0.09);
+  --fc-button-bg-color: #008c58;
+  --fc-button-border-color: #008c58;
+  --fc-button-hover-bg-color: #017448;
+  --fc-button-hover-border-color: #017448;
+  --fc-button-active-bg-color: #005c3a;
+  --fc-button-active-border-color: #005c3a;
+  --fc-today-bg-color: rgba(0, 140, 88, 0.08);
   --fc-page-bg-color: transparent;
 }
 
@@ -45,16 +49,16 @@
     @apply mb-1 block text-sm font-medium text-gray-700;
   }
   .input {
-    @apply w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base focus:border-ink focus:outline-none;
+    @apply w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base focus:border-brand focus:outline-none;
   }
   .btn-primary {
-    @apply rounded-lg bg-ink px-4 py-2.5 text-sm font-semibold text-white hover:bg-black disabled:opacity-50;
+    @apply rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50;
   }
   .btn-secondary {
     @apply rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink hover:bg-gray-50;
   }
   .btn-danger {
-    @apply rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50;
+    @apply rounded-lg bg-brand-red px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50;
   }
 }
 

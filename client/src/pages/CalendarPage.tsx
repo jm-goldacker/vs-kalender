@@ -11,6 +11,7 @@ import { api } from '../api/client';
 import type { Booking, Bus } from '../api/types';
 import { BookingDialog, type DialogState } from '../components/BookingDialog';
 import { BookingDetails } from '../components/BookingDetails';
+import wortmarke from '../assets/vs-wortmarke.png';
 
 const PLUGINS = [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin];
 const TOOLBAR_MOBILE = { left: 'prev,next', center: 'title', right: 'listWeek,dayGridMonth' };
@@ -156,8 +157,16 @@ export function CalendarPage() {
         </button>
       </div>
 
-      <FullCalendar
-        ref={calendarRef}
+      <div className="relative">
+        {/* Wasserzeichen: Vereins-Schriftzug über dem Kalender, nicht klickbar */}
+        <div
+          className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center overflow-hidden"
+          aria-hidden
+        >
+          <img src={wortmarke} alt="" className="w-4/5 max-w-2xl opacity-[0.07]" />
+        </div>
+        <FullCalendar
+          ref={calendarRef}
         plugins={PLUGINS}
         locales={[deLocale]}
         locale="de"
@@ -174,13 +183,15 @@ export function CalendarPage() {
         dayMaxEventRows={4}
         nowIndicator
       />
+      </div>
 
       {/* Floating-Action-Button für Mobilgeräte */}
       <button
         onClick={() => setDialog({ mode: 'create' })}
         disabled={buses.length === 0}
         aria-label="Neue Buchung"
-        className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-ink text-3xl leading-none text-amber shadow-lg disabled:opacity-40 sm:hidden"
+        className="fixed right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-brand text-3xl leading-none text-white shadow-lg disabled:opacity-40 sm:hidden"
+        style={{ bottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}
       >
         +
       </button>

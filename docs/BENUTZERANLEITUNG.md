@@ -38,13 +38,13 @@ Ein Klick auf einen Termin zeigt die Details. **Deine eigenen Buchungen** kannst
 
 ## 6. Auf dem Handy
 
-Auf dem Smartphone zeigt die App automatisch eine übersichtliche Listenansicht. Mit dem **+**-Knopf unten rechts legst du eine neue Buchung an.
+Auf dem Smartphone zeigt die App automatisch eine übersichtliche Listenansicht. Mit dem **+**-Knopf unten rechts legst du eine neue Buchung an. Das Menü (Kalender, Verwaltung, Passwort ändern, Abmelden) erreichst du über den **☰**-Knopf oben rechts.
 
 <img src="img/06-mobil.png" alt="Mobile Listenansicht" width="320">
 
 ## 7. Passwort ändern
 
-Über **„Passwort“** oben in der Leiste kannst du jederzeit dein eigenes Passwort ändern. Solltest du es vergessen haben, kann der Admin es zurücksetzen.
+Über **„Passwort“** oben in der Leiste (am Handy im ☰-Menü) kannst du jederzeit dein eigenes Passwort ändern. Solltest du es vergessen haben, kann der Admin es zurücksetzen.
 
 ## 8. Für Admins: Verwaltung
 

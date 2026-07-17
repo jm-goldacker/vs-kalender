@@ -137,7 +137,7 @@ function UsersTab() {
               <p className="truncate font-medium">
                 {u.displayName}
                 {u.role === 'admin' && (
-                  <span className="ml-2 rounded bg-amber/20 px-1.5 py-0.5 text-xs font-semibold">Admin</span>
+                  <span className="ml-2 rounded bg-brand/15 px-1.5 py-0.5 text-xs font-semibold text-brand-dark">Admin</span>
                 )}
                 {!u.isActive && (
                   <span className="ml-2 rounded bg-gray-200 px-1.5 py-0.5 text-xs">deaktiviert</span>
@@ -335,7 +335,7 @@ export function AdminPage() {
   const [tab, setTab] = useState<'buses' | 'users'>('buses');
 
   const tabClass = (active: boolean) =>
-    `rounded-lg px-4 py-2 text-sm font-semibold ${active ? 'bg-ink text-white' : 'bg-white text-ink shadow-sm'}`;
+    `rounded-lg px-4 py-2 text-sm font-semibold ${active ? 'bg-brand text-white' : 'bg-white text-ink shadow-sm'}`;
 
   return (
     <div className="space-y-4">

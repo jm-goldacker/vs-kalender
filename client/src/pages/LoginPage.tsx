@@ -30,8 +30,8 @@ export function LoginPage() {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-paper px-4">
       <div className="w-full max-w-sm">
-        <div className="rounded-t-2xl bg-[#17181c] px-6 py-5 text-center">
-          <span className="font-mono text-lg font-semibold uppercase tracking-[0.3em] text-amber">
+        <div className="rounded-t-2xl bg-brand px-6 py-5 text-center">
+          <span className="font-mono text-lg font-semibold uppercase tracking-[0.3em] text-white">
             Bus·Kalender
           </span>
         </div>
