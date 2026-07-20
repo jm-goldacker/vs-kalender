@@ -8,11 +8,14 @@ export interface UserDto {
   isActive: boolean;
 }
 
+export type ResourceCategory = 'fahrzeug' | 'geraet';
+
 export interface BusDto {
   id: number;
   name: string;
-  licensePlate: string;
-  seats: number;
+  category: ResourceCategory;
+  licensePlate: string | null;
+  seats: number | null;
   color: string;
   isActive: boolean;
 }

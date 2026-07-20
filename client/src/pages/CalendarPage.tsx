@@ -128,7 +128,9 @@ export function CalendarPage() {
               <button
                 key={bus.id}
                 onClick={() => toggleBus(bus.id)}
-                title={`${bus.licensePlate} · ${bus.seats} Plätze`}
+                title={
+                  bus.category === 'fahrzeug' ? `${bus.licensePlate} · ${bus.seats} Plätze` : 'Gerät'
+                }
                 className={`flex shrink-0 items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-sm ${
                   hidden ? 'opacity-40' : ''
                 }`}
@@ -144,7 +146,7 @@ export function CalendarPage() {
           })}
           {buses.length === 0 && (
             <p className="text-sm text-gray-500">
-              Noch keine Busse angelegt — ein Admin kann das unter „Verwaltung“ tun.
+              Noch keine Ressourcen angelegt — ein Admin kann das unter „Verwaltung“ tun.
             </p>
           )}
         </div>

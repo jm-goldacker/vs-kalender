@@ -187,15 +187,24 @@ function UsersTab() {
 
 function BusForm({ bus, onClose, onSaved }: { bus: Bus | null; onClose: () => void; onSaved: () => void }) {
   const [name, setName] = useState(bus?.name ?? '');
+  const [category, setCategory] = useState<Bus['category']>(bus?.category ?? 'fahrzeug');
   const [licensePlate, setLicensePlate] = useState(bus?.licensePlate ?? '');
   const [seats, setSeats] = useState(bus?.seats ?? 9);
   const [color, setColor] = useState(bus?.color ?? '#2563eb');
   const [error, setError] = useState('');
 
+  const fahrzeug = category === 'fahrzeug';
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    const body = { name, licensePlate, seats, color };
+    const body = {
+      name,
+      category,
+      licensePlate: fahrzeug ? licensePlate : null,
+      seats: fahrzeug ? seats : null,
+      color,
+    };
     try {
       if (bus) await api.put(`/buses/${bus.id}`, body);
       else await api.post('/buses', body);
@@ -206,30 +215,51 @@ function BusForm({ bus, onClose, onSaved }: { bus: Bus | null; onClose: () => vo
   };
 
   return (
-    <Modal title={bus ? `Bus bearbeiten: ${bus.name}` : 'Neuen Bus anlegen'} onClose={onClose}>
+    <Modal title={bus ? `Ressource bearbeiten: ${bus.name}` : 'Neue Ressource anlegen'} onClose={onClose}>
       <form onSubmit={submit} className="space-y-4">
-        <label className="block">
-          <span className="label">Name</span>
-          <input value={name} onChange={(e) => setName(e.target.value)} required placeholder="z.B. Sprinter groß" className="input" />
-        </label>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="block">
-            <span className="label">Kennzeichen</span>
-            <input value={licensePlate} onChange={(e) => setLicensePlate(e.target.value)} required className="input" />
+            <span className="label">Kategorie</span>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value as Bus['category'])}
+              className="input"
+            >
+              <option value="fahrzeug">Fahrzeug</option>
+              <option value="geraet">Gerät</option>
+            </select>
           </label>
           <label className="block">
-            <span className="label">Sitzplätze</span>
+            <span className="label">Name</span>
             <input
-              type="number"
-              min={1}
-              max={200}
-              value={seats}
-              onChange={(e) => setSeats(Number(e.target.value))}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               required
+              placeholder={fahrzeug ? 'z.B. Sprinter groß' : 'z.B. Popcornmaschine'}
               className="input"
             />
           </label>
         </div>
+        {fahrzeug && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className="label">Kennzeichen</span>
+              <input value={licensePlate ?? ''} onChange={(e) => setLicensePlate(e.target.value)} required className="input" />
+            </label>
+            <label className="block">
+              <span className="label">Sitzplätze</span>
+              <input
+                type="number"
+                min={1}
+                max={200}
+                value={seats ?? 9}
+                onChange={(e) => setSeats(Number(e.target.value))}
+                required
+                className="input"
+              />
+            </label>
+          </div>
+        )}
         <label className="block">
           <span className="label">Farbe im Kalender</span>
           <input
@@ -277,8 +307,8 @@ function BusesTab() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Busse ({buses.length})</h2>
-        <button onClick={() => setForm({ open: true, bus: null })} className="btn-primary">+ Bus</button>
+        <h2 className="text-lg font-semibold">Ressourcen ({buses.length})</h2>
+        <button onClick={() => setForm({ open: true, bus: null })} className="btn-primary">+ Ressource</button>
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <ul className="space-y-2">
@@ -296,7 +326,7 @@ function BusesTab() {
                 )}
               </p>
               <p className="truncate text-sm text-gray-500">
-                {bus.licensePlate} · {bus.seats} Plätze
+                {bus.category === 'fahrzeug' ? `${bus.licensePlate} · ${bus.seats} Plätze` : 'Gerät'}
               </p>
             </div>
             <div className="flex gap-1.5">
@@ -311,7 +341,7 @@ function BusesTab() {
         ))}
         {buses.length === 0 && (
           <li className="rounded-xl bg-white p-6 text-center text-sm text-gray-500 shadow-sm">
-            Noch keine Busse angelegt. Lege den ersten Bus an, damit gebucht werden kann.
+            Noch keine Ressourcen angelegt. Lege die erste Ressource an, damit gebucht werden kann.
           </li>
         )}
       </ul>
@@ -341,7 +371,7 @@ export function AdminPage() {
     <div className="space-y-4">
       <div className="flex gap-2">
         <button onClick={() => setTab('buses')} className={tabClass(tab === 'buses')}>
-          Busse
+          Ressourcen
         </button>
         <button onClick={() => setTab('users')} className={tabClass(tab === 'users')}>
           Benutzer

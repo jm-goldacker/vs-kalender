@@ -5,9 +5,9 @@ Gemeinsamer Buchungskalender für Vereinsbusse. Jeder der ca. 15 Nutzer kann seh
 **Funktionen**
 
 - Login mit Benutzername + Passwort, Rollen: Admin und Mitglied
-- Mehrere Busse mit Name, Kennzeichen, Sitzplätzen und eigener Kalenderfarbe
+- Beliebige Ressourcen buchbar: Fahrzeuge (mit Kennzeichen und Sitzplätzen) sowie Geräte wie Hüpfburg oder Bierzeltgarnitur, jeweils mit eigener Kalenderfarbe
 - Monats-, Wochen- und Listenansicht (auf dem Handy automatisch Listenansicht)
-- Konfliktprüfung: kein Bus kann für überlappende Zeiträume doppelt gebucht werden
+- Konfliktprüfung: keine Ressource kann für überlappende Zeiträume doppelt gebucht werden
 - Wöchentlich wiederkehrende Termine (mit Enddatum), einzelne Termine oder ganze Serien änderbar/löschbar
 - Jeder bearbeitet nur eigene Buchungen, Admins alle
 - Admin-Bereich für Benutzer- und Busverwaltung

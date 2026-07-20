@@ -86,7 +86,7 @@ export function BookingDialog({ buses, state, onClose, onSaved }: Props) {
     <Modal title={editing ? 'Buchung bearbeiten' : 'Neue Buchung'} onClose={onClose}>
       <form onSubmit={submit} className="space-y-4">
         <label className="block">
-          <span className="label">Bus</span>
+          <span className="label">Ressource</span>
           <select
             value={busId}
             onChange={(e) => setBusId(Number(e.target.value))}
@@ -95,7 +95,7 @@ export function BookingDialog({ buses, state, onClose, onSaved }: Props) {
           >
             {buses.map((b) => (
               <option key={b.id} value={b.id}>
-                {b.name} ({b.licensePlate}, {b.seats} Plätze)
+                {b.category === 'fahrzeug' ? `${b.name} (${b.licensePlate}, ${b.seats} Plätze)` : b.name}
               </option>
             ))}
           </select>

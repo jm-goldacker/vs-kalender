@@ -63,6 +63,25 @@ const migrations: string[] = [
   CREATE INDEX idx_bookings_series ON bookings(series_id);
   CREATE INDEX idx_bookings_user ON bookings(user_id);
   `,
+  // Migration 2: Busse werden zu allgemeinen Ressourcen (Fahrzeug oder Gerät).
+  // Kennzeichen/Sitzplätze sind nur noch für Fahrzeuge relevant → nullable.
+  // SQLite kann NOT NULL nicht entfernen, daher Tabellen-Neuaufbau.
+  `
+  CREATE TABLE buses_new (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    name          TEXT NOT NULL,
+    category      TEXT NOT NULL DEFAULT 'fahrzeug' CHECK (category IN ('fahrzeug', 'geraet')),
+    license_plate TEXT,
+    seats         INTEGER,
+    color         TEXT NOT NULL,
+    is_active     INTEGER NOT NULL DEFAULT 1,
+    created_at    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+  );
+  INSERT INTO buses_new (id, name, category, license_plate, seats, color, is_active, created_at)
+    SELECT id, name, 'fahrzeug', license_plate, seats, color, is_active, created_at FROM buses;
+  DROP TABLE buses;
+  ALTER TABLE buses_new RENAME TO buses;
+  `,
 ];
 
 export function migrate(): void {
@@ -74,12 +93,22 @@ export function migrate(): void {
   if (!row) {
     db.prepare('INSERT INTO schema_version (version) VALUES (0)').run();
   }
-  while (version < migrations.length) {
-    const target = version + 1;
-    db.transaction(() => {
-      db.exec(migrations[version]);
-      db.prepare('UPDATE schema_version SET version = ?').run(target);
-    })();
-    version = target;
+  // Für Tabellen-Neuaufbauten muss die FK-Prüfung aus sein (außerhalb der Transaktion)
+  db.pragma('foreign_keys = OFF');
+  try {
+    while (version < migrations.length) {
+      const target = version + 1;
+      db.transaction(() => {
+        db.exec(migrations[version]);
+        db.prepare('UPDATE schema_version SET version = ?').run(target);
+      })();
+      version = target;
+    }
+    const broken = db.pragma('foreign_key_check') as unknown[];
+    if (broken.length > 0) {
+      throw new Error(`Migration hat Fremdschlüssel beschädigt: ${JSON.stringify(broken)}`);
+    }
+  } finally {
+    db.pragma('foreign_keys = ON');
   }
 }

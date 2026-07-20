@@ -73,7 +73,7 @@ function validateTimes(start: string, end: string): void {
 
 function requireActiveBus(busId: number): void {
   const bus = db.prepare('SELECT id FROM buses WHERE id = ? AND is_active = 1').get(busId);
-  if (!bus) throw new HttpError(400, 'Der gewählte Bus existiert nicht oder ist deaktiviert');
+  if (!bus) throw new HttpError(400, 'Die gewählte Ressource existiert nicht oder ist deaktiviert');
 }
 
 function loadBooking(id: number): BookingRow {

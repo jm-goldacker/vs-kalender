@@ -1,6 +1,6 @@
 # Bus-Kalender – Benutzeranleitung
 
-Der Bus-Kalender zeigt, wann welcher Vereinsbus frei ist, und ermöglicht es, eigene Fahrten einzutragen. Die App funktioniert am Computer und auf dem Smartphone im Browser — einfach die Adresse öffnen, die vom Administrator mitgeteilt wurde.
+Der Bus-Kalender zeigt, wann die Vereinsbusse und andere Ressourcen (z.B. Hüpfburg, Popcornmaschine oder Bierzeltgarnituren) frei sind, und ermöglicht es, eigene Buchungen einzutragen. Die App funktioniert am Computer und auf dem Smartphone im Browser — einfach die Adresse öffnen, die vom Administrator mitgeteilt wurde.
 
 ## 1. Anmelden
 
@@ -10,23 +10,23 @@ Melden Sie sich mit Ihrem Benutzernamen und Passwort an. Beides erhalten Sie vom
 
 ## 2. Der Kalender
 
-Nach der Anmeldung erscheint der gemeinsame Kalender mit allen Buchungen. **Jeder Bus hat seine eigene Farbe** — welche Farbe zu welchem Bus gehört, zeigen die Knöpfe über dem Kalender. Ein Klick auf einen Bus-Knopf blendet dessen Buchungen aus oder wieder ein; so lässt sich schneller ein freier Bus finden.
+Nach der Anmeldung erscheint der gemeinsame Kalender mit allen Buchungen. **Jede Ressource hat ihre eigene Farbe** — welche Farbe wozu gehört, zeigen die Knöpfe über dem Kalender. Ein Klick auf einen dieser Knöpfe blendet die zugehörigen Buchungen aus oder wieder ein; so lässt sich schneller eine freie Ressource finden.
 
 Oben rechts kann zwischen **Monat**, **Woche** und **Liste** gewechselt werden. Das ↻-Symbol an einem Termin bedeutet: Der Termin wiederholt sich wöchentlich.
 
 ![Kalender in der Monatsansicht](img/02-kalender.png)
 
-## 3. Einen Bus buchen
+## 3. Einen Bus oder ein Gerät buchen
 
-Klicken Sie auf **„+ Neue Buchung“** (oder ziehen Sie im Kalender einfach über den gewünschten Zeitraum). Wählen Sie den Bus, geben Sie den Zweck der Fahrt an und legen Sie Beginn und Ende fest.
+Klicken Sie auf **„+ Neue Buchung“** (oder ziehen Sie im Kalender einfach über den gewünschten Zeitraum). Wählen Sie die Ressource — einen Bus oder ein Gerät wie die Hüpfburg —, geben Sie den Zweck an und legen Sie Beginn und Ende fest.
 
 Für regelmäßige Fahrten (z.B. jeden Montag zum Training) haken Sie **„Wöchentlich wiederholen“** an und geben an, bis wann sich der Termin wiederholen soll.
 
 ![Dialog Neue Buchung mit Wiederholung](img/03-buchen.png)
 
-## 4. Wenn der Bus schon belegt ist
+## 4. Wenn die Ressource schon belegt ist
 
-Doppelbuchungen sind nicht möglich. Falls sich die Anfrage mit einer bestehenden Buchung überschneidet, zeigt die App an, **wer den Bus wann gebucht hat** — wählen Sie dann einfach eine andere Zeit oder einen anderen Bus.
+Doppelbuchungen sind nicht möglich. Falls sich die Anfrage mit einer bestehenden Buchung überschneidet, zeigt die App an, **wer die Ressource wann gebucht hat** — wählen Sie dann einfach eine andere Zeit oder eine andere Ressource.
 
 ![Konfliktmeldung bei überschneidender Buchung](img/04-konflikt.png)
 
@@ -48,6 +48,6 @@ Auf dem Smartphone zeigt die App automatisch eine übersichtliche Listenansicht.
 
 ## 8. Für Administratoren: Verwaltung
 
-Administratoren sehen zusätzlich den Menüpunkt **„Verwaltung“**. Dort werden Busse angelegt (Name, Kennzeichen, Sitzplätze, Kalenderfarbe) und die Benutzer verwaltet: neue Mitglieder anlegen, Passwörter zurücksetzen, Konten deaktivieren oder Admin-Rechte vergeben. Administratoren dürfen außerdem alle Buchungen bearbeiten und löschen.
+Administratoren sehen zusätzlich den Menüpunkt **„Verwaltung“**. Dort werden die Ressourcen angelegt — Fahrzeuge mit Kennzeichen und Sitzplätzen sowie Geräte wie Popcornmaschine, Hüpfburg oder Bierzeltgarnituren, jeweils mit eigener Kalenderfarbe. Außerdem werden dort die Benutzer verwaltet: neue Mitglieder anlegen, Passwörter zurücksetzen, Konten deaktivieren oder Admin-Rechte vergeben. Administratoren dürfen zudem alle Buchungen bearbeiten und löschen.
 
-![Verwaltung der Busse](img/07-verwaltung.png)
+![Verwaltung der Ressourcen](img/07-verwaltung.png)

@@ -15,11 +15,14 @@ export interface User {
   isActive: boolean;
 }
 
+export type ResourceCategory = 'fahrzeug' | 'geraet';
+
 export interface Bus {
   id: number;
   name: string;
-  licensePlate: string;
-  seats: number;
+  category: ResourceCategory;
+  licensePlate: string | null;
+  seats: number | null;
   color: string;
   isActive: boolean;
 }

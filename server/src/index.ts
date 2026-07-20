@@ -70,7 +70,7 @@ async function main(): Promise<void> {
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof ConflictError) {
       return res.status(409).json({
-        error: 'Der Bus ist in diesem Zeitraum bereits gebucht',
+        error: 'Diese Ressource ist in dem Zeitraum bereits gebucht',
         conflicts: err.conflicts.map((c) => ({
           id: c.id,
           title: c.title,
