@@ -93,7 +93,7 @@ export function Layout({ children }: { children: ReactNode }) {
             className="shrink-0 font-mono text-sm font-semibold uppercase tracking-[0.25em] text-white"
             onClick={() => setMenuOpen(false)}
           >
-            Bus·Kalender
+            VS·Kalender
           </NavLink>
 
           {/* Desktop-Navigation */}

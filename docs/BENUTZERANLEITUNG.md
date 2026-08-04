@@ -1,6 +1,6 @@
-# Bus-Kalender – Benutzeranleitung
+# VS-Kalender – Benutzeranleitung
 
-Der Bus-Kalender zeigt, wann die Vereinsbusse und andere Ressourcen (z.B. Hüpfburg, Popcornmaschine oder Bierzeltgarnituren) frei sind, und ermöglicht es, eigene Buchungen einzutragen. Die App funktioniert am Computer und auf dem Smartphone im Browser — einfach die Adresse öffnen, die vom Administrator mitgeteilt wurde.
+Der VS-Kalender zeigt, wann die Vereinsbusse und andere Ressourcen (z.B. Hüpfburg, Popcornmaschine oder Bierzeltgarnituren) frei sind, und ermöglicht es, eigene Buchungen einzutragen. Die App funktioniert am Computer und auf dem Smartphone im Browser — einfach die Adresse öffnen, die vom Administrator mitgeteilt wurde.
 
 ## 1. Anmelden
 

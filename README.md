@@ -1,4 +1,4 @@
-# Bus-Kalender
+# VS-Kalender
 
 Gemeinsamer Buchungskalender für Vereinsbusse. Jeder der ca. 15 Nutzer kann sehen, wann welcher Bus frei ist, und eigene Buchungen anlegen. Doppelbuchungen werden automatisch verhindert.
 

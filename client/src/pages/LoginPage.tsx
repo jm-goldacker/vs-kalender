@@ -32,7 +32,7 @@ export function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="rounded-t-2xl bg-brand px-6 py-5 text-center">
           <span className="font-mono text-lg font-semibold uppercase tracking-[0.3em] text-white">
-            Bus·Kalender
+            VS·Kalender
           </span>
         </div>
         <form onSubmit={submit} className="space-y-4 rounded-b-2xl bg-white p-6 shadow-md">
