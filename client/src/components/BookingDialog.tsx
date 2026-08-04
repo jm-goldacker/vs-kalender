@@ -74,6 +74,7 @@ export function BookingDialog({ buses, state, onClose, onSaved }: Props) {
           (editing ? `&excludeBookingId=${editing.id}` : '')
       ),
     enabled: needsQuantity && startIso !== null && endIso !== null,
+    staleTime: 0,
   });
 
   const submit = async (e: React.FormEvent) => {
