@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 
 process.env.DATABASE_PATH = ':memory:';
 const { db, migrate } = await import('../db');
-const { findConflicts } = await import('./conflicts');
+const { findConflicts, checkAvailability } = await import('./conflicts');
 
 // Bestehende Buchung: Bus 1, 10:00–12:00 UTC
 const START = '2026-08-01T10:00:00.000Z';
@@ -17,6 +17,9 @@ beforeAll(() => {
     "INSERT INTO buses (id, name, license_plate, seats, color) VALUES (1, 'Bus 1', 'MZ-AB 123', 20, '#ff0000'), (2, 'Bus 2', 'MZ-CD 456', 9, '#00ff00')"
   ).run();
   db.prepare(
+    "INSERT INTO buses (id, name, category, quantity, color) VALUES (3, 'Bierzeltgarnitur', 'geraet', 27, '#0000ff')"
+  ).run();
+  db.prepare(
     "INSERT INTO booking_series (id, freq, interval, until) VALUES ('serie-1', 'weekly', 1, '2026-12-31')"
   ).run();
   db.prepare(
@@ -24,6 +27,11 @@ beforeAll(() => {
      VALUES (1, 1, 1, 'Bestehend', ?, ?, NULL),
             (2, 1, 1, 'Serientermin', '2026-08-08T10:00:00.000Z', '2026-08-08T12:00:00.000Z', 'serie-1')`
   ).run(START, END);
+  db.prepare(
+    `INSERT INTO bookings (id, bus_id, user_id, title, start_utc, end_utc, quantity)
+     VALUES (3, 3, 1, 'Sommerfest', ?, ?, 15),
+            (4, 3, 1, 'Vereinsfeier', ?, ?, 5)`
+  ).run(START, END, START, END);
 });
 
 describe('findConflicts', () => {
@@ -80,5 +88,35 @@ describe('findConflicts', () => {
       { seriesId: 'serie-1' }
     );
     expect(c.map((x) => x.id)).toEqual([1]);
+  });
+});
+
+describe('checkAvailability', () => {
+  it('summiert die Mengen überlappender Buchungen bei einem Gerät mit Stückzahl', () => {
+    // Bus 3 (Bierzeltgarnitur, 27 Stück): bereits 15 + 5 = 20 gebucht im Zeitraum
+    const { available } = checkAvailability({ busId: 3, start: START, end: END }, 27);
+    expect(available).toBe(7);
+  });
+
+  it('nimmt die eigene Buchung beim Bearbeiten aus der Summe aus', () => {
+    const { available } = checkAvailability(
+      { busId: 3, start: START, end: END },
+      27,
+      { bookingId: 3 }
+    );
+    expect(available).toBe(22);
+  });
+
+  it('meldet die volle Stückzahl außerhalb des gebuchten Zeitraums als verfügbar', () => {
+    const { available } = checkAvailability(
+      { busId: 3, start: '2026-08-02T10:00:00.000Z', end: '2026-08-02T12:00:00.000Z' },
+      27
+    );
+    expect(available).toBe(27);
+  });
+
+  it('verhält sich bei totalQuantity 1 (Fahrzeug) weiterhin exklusiv', () => {
+    const { available } = checkAvailability({ busId: 1, start: START, end: END }, 1);
+    expect(available).toBe(0);
   });
 });

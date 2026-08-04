@@ -1,7 +1,11 @@
 import type { ConflictRow } from './services/conflicts';
 
 export class ConflictError extends Error {
-  constructor(public conflicts: ConflictRow[]) {
+  constructor(
+    public conflicts: ConflictRow[],
+    public available?: number,
+    public requested?: number
+  ) {
     super('Buchungskonflikt');
   }
 }

@@ -23,6 +23,7 @@ export interface Bus {
   category: ResourceCategory;
   licensePlate: string | null;
   seats: number | null;
+  quantity: number | null;
   color: string;
   isActive: boolean;
 }
@@ -36,9 +37,11 @@ export interface Booking {
   end: string;
   seriesId: string | null;
   notes: string | null;
+  quantity: number;
   userDisplayName: string;
   busName: string;
   busColor: string;
+  busQuantity: number | null;
 }
 
 export interface Conflict {

@@ -45,6 +45,11 @@ export function BookingDetails({ booking, onClose, onEdit, onChanged }: Props) {
             <span className="font-medium">{booking.busName}</span>
           </p>
           <p>{formatRange(booking.start, booking.end)}</p>
+          {booking.quantity > 1 && (
+            <p className="text-gray-600">
+              Menge: {booking.quantity} von {booking.busQuantity ?? booking.quantity}
+            </p>
+          )}
           <p className="text-gray-600">Gebucht von {booking.userDisplayName}</p>
           {booking.seriesId && <p className="text-gray-600">↻ Teil einer wöchentlichen Serie</p>}
           {booking.notes && <p className="whitespace-pre-wrap text-gray-700">{booking.notes}</p>}

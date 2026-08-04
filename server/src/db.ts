@@ -82,6 +82,12 @@ const migrations: string[] = [
   DROP TABLE buses;
   ALTER TABLE buses_new RENAME TO buses;
   `,
+  // Migration 3: Geräte können in Stückzahl gebucht werden (z.B. 15 von 27 Bierzeltgarnituren).
+  // quantity ist NULL für Fahrzeuge (weiterhin exklusiv buchbar) und Pflicht für Geräte.
+  `
+  ALTER TABLE buses ADD COLUMN quantity INTEGER CHECK (quantity IS NULL OR quantity >= 1);
+  ALTER TABLE bookings ADD COLUMN quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity >= 1);
+  `,
 ];
 
 export function migrate(): void {

@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../db';
 import { ConflictError, HttpError } from '../errors';
-import { findConflicts, type ConflictRow } from '../services/conflicts';
+import { checkAvailability, type ConflictRow } from '../services/conflicts';
 import { expandWeekly } from '../services/recurrence';
 import { normalizeUtc, nowUtc } from '../time';
 import type { BookingDto } from '../types';
@@ -17,6 +17,13 @@ interface BookingRow {
   end_utc: string;
   series_id: string | null;
   notes: string | null;
+  quantity: number;
+}
+
+interface BusRow {
+  id: number;
+  category: 'fahrzeug' | 'geraet';
+  quantity: number | null;
 }
 
 interface SeriesRow {
@@ -33,6 +40,7 @@ const bookingSchema = z.object({
   title: z.string().trim().min(1, 'Bitte einen Zweck angeben').max(200),
   start: isoDate,
   end: isoDate,
+  quantity: z.number().int().min(1).max(100000).default(1),
   notes: z.string().trim().max(2000).nullish(),
 });
 
@@ -46,7 +54,14 @@ const createSchema = bookingSchema.extend({
     .nullish(),
 });
 
-function toDto(row: BookingRow & { display_name: string; bus_name: string; bus_color: string }): BookingDto {
+type BookingRowWithJoins = BookingRow & {
+  display_name: string;
+  bus_name: string;
+  bus_color: string;
+  bus_quantity: number | null;
+};
+
+function toDto(row: BookingRowWithJoins): BookingDto {
   return {
     id: row.id,
     busId: row.bus_id,
@@ -56,9 +71,11 @@ function toDto(row: BookingRow & { display_name: string; bus_name: string; bus_c
     end: row.end_utc,
     seriesId: row.series_id,
     notes: row.notes,
+    quantity: row.quantity,
     userDisplayName: row.display_name,
     busName: row.bus_name,
     busColor: row.bus_color,
+    busQuantity: row.bus_quantity,
   };
 }
 
@@ -71,9 +88,19 @@ function validateTimes(start: string, end: string): void {
   }
 }
 
-function requireActiveBus(busId: number): void {
-  const bus = db.prepare('SELECT id FROM buses WHERE id = ? AND is_active = 1').get(busId);
+function loadActiveBus(busId: number): BusRow {
+  const bus = db
+    .prepare('SELECT id, category, quantity FROM buses WHERE id = ? AND is_active = 1')
+    .get(busId) as BusRow | undefined;
   if (!bus) throw new HttpError(400, 'Die gewählte Ressource existiert nicht oder ist deaktiviert');
+  return bus;
+}
+
+function validateQuantity(bus: BusRow, requested: number): void {
+  const total = bus.quantity ?? 1;
+  if (requested > total) {
+    throw new HttpError(400, `Die angefragte Menge übersteigt die Gesamtanzahl der Ressource (${total})`);
+  }
 }
 
 function loadBooking(id: number): BookingRow {
@@ -98,8 +125,8 @@ function cleanupSeries(seriesId: string): void {
 
 const insertBooking = () =>
   db.prepare(
-    `INSERT INTO bookings (bus_id, user_id, title, start_utc, end_utc, series_id, notes)
-     VALUES (@busId, @userId, @title, @start, @end, @seriesId, @notes)`
+    `INSERT INTO bookings (bus_id, user_id, title, start_utc, end_utc, quantity, series_id, notes)
+     VALUES (@busId, @userId, @title, @start, @end, @quantity, @seriesId, @notes)`
   );
 
 export const bookingsRouter = Router();
@@ -109,14 +136,14 @@ bookingsRouter.get('/', (req, res) => {
   const to = normalizeUtc(String(req.query.to ?? ''));
   const rows = db
     .prepare(
-      `SELECT b.*, u.display_name, bus.name AS bus_name, bus.color AS bus_color
+      `SELECT b.*, u.display_name, bus.name AS bus_name, bus.color AS bus_color, bus.quantity AS bus_quantity
        FROM bookings b
        JOIN users u ON u.id = b.user_id
        JOIN buses bus ON bus.id = b.bus_id
        WHERE b.start_utc < @to AND b.end_utc > @from
        ORDER BY b.start_utc`
     )
-    .all({ from, to }) as Array<BookingRow & { display_name: string; bus_name: string; bus_color: string }>;
+    .all({ from, to }) as BookingRowWithJoins[];
   res.json(rows.map(toDto));
 });
 
@@ -125,7 +152,9 @@ bookingsRouter.post('/', (req, res) => {
   const start = normalizeUtc(body.start);
   const end = normalizeUtc(body.end);
   validateTimes(start, end);
-  requireActiveBus(body.busId);
+  const bus = loadActiveBus(body.busId);
+  validateQuantity(bus, body.quantity);
+  const totalQuantity = bus.quantity ?? 1;
 
   const occurrences = body.recurrence
     ? expandWeekly(start, end, body.recurrence.interval, body.recurrence.until)
@@ -133,11 +162,16 @@ bookingsRouter.post('/', (req, res) => {
 
   const result = db.transaction(() => {
     const conflicts: ConflictRow[] = [];
+    let minAvailable: number | undefined;
     for (const occ of occurrences) {
-      conflicts.push(...findConflicts({ busId: body.busId, ...occ }));
-      if (conflicts.length >= 5) break;
+      const { available, overlapping } = checkAvailability({ busId: body.busId, ...occ }, totalQuantity);
+      if (available < body.quantity) {
+        conflicts.push(...overlapping);
+        minAvailable = minAvailable === undefined ? available : Math.min(minAvailable, available);
+        if (conflicts.length >= 5) break;
+      }
     }
-    if (conflicts.length > 0) throw new ConflictError(conflicts.slice(0, 5));
+    if (conflicts.length > 0) throw new ConflictError(conflicts.slice(0, 5), minAvailable, body.quantity);
 
     let seriesId: string | null = null;
     if (body.recurrence) {
@@ -159,6 +193,7 @@ bookingsRouter.post('/', (req, res) => {
         title: body.title,
         start: occ.start,
         end: occ.end,
+        quantity: body.quantity,
         seriesId,
         notes: body.notes ?? null,
       });
@@ -178,21 +213,26 @@ bookingsRouter.put('/:id', (req, res) => {
   const start = normalizeUtc(body.start);
   const end = normalizeUtc(body.end);
   validateTimes(start, end);
-  requireActiveBus(body.busId);
+  const bus = loadActiveBus(body.busId);
+  validateQuantity(bus, body.quantity);
+  const totalQuantity = bus.quantity ?? 1;
 
   const scope = req.query.scope === 'series' ? 'series' : 'single';
 
   if (scope === 'single') {
     db.transaction(() => {
-      const conflicts = findConflicts(
+      const { available, overlapping } = checkAvailability(
         { busId: body.busId, start, end },
+        totalQuantity,
         { bookingId: booking.id }
       );
-      if (conflicts.length > 0) throw new ConflictError(conflicts);
+      if (available < body.quantity) {
+        throw new ConflictError(overlapping.slice(0, 5), available, body.quantity);
+      }
       db.prepare(
-        `UPDATE bookings SET bus_id = ?, title = ?, start_utc = ?, end_utc = ?, notes = ?, updated_at = ?
+        `UPDATE bookings SET bus_id = ?, title = ?, start_utc = ?, end_utc = ?, quantity = ?, notes = ?, updated_at = ?
          WHERE id = ?`
-      ).run(body.busId, body.title, start, end, body.notes ?? null, nowUtc(), booking.id);
+      ).run(body.busId, body.title, start, end, body.quantity, body.notes ?? null, nowUtc(), booking.id);
     })();
     return res.json({ ok: true, count: 1 });
   }
@@ -216,11 +256,20 @@ bookingsRouter.put('/:id', (req, res) => {
       );
       const occurrences = expandWeekly(start, end, series.interval, series.until);
       const conflicts: ConflictRow[] = [];
+      let minAvailable: number | undefined;
       for (const occ of occurrences) {
-        conflicts.push(...findConflicts({ busId: body.busId, ...occ }, { seriesId: series.id }));
-        if (conflicts.length >= 5) break;
+        const { available, overlapping } = checkAvailability(
+          { busId: body.busId, ...occ },
+          totalQuantity,
+          { seriesId: series.id }
+        );
+        if (available < body.quantity) {
+          conflicts.push(...overlapping);
+          minAvailable = minAvailable === undefined ? available : Math.min(minAvailable, available);
+          if (conflicts.length >= 5) break;
+        }
       }
-      if (conflicts.length > 0) throw new ConflictError(conflicts.slice(0, 5));
+      if (conflicts.length > 0) throw new ConflictError(conflicts.slice(0, 5), minAvailable, body.quantity);
 
       const insert = insertBooking();
       for (const occ of occurrences) {
@@ -230,6 +279,7 @@ bookingsRouter.put('/:id', (req, res) => {
           title: body.title,
           start: occ.start,
           end: occ.end,
+          quantity: body.quantity,
           seriesId: series.id,
           notes: body.notes ?? null,
         });
@@ -237,27 +287,31 @@ bookingsRouter.put('/:id', (req, res) => {
       return occurrences.length;
     }
 
-    // Nur Bus/Titel/Notizen: bei Buswechsel Konflikte für alle betroffenen Termine prüfen
+    // Nur Bus/Titel/Menge/Notizen: bei Bus- oder Mengenwechsel Verfügbarkeit für alle betroffenen Termine prüfen
     const affected = db
       .prepare('SELECT * FROM bookings WHERE series_id = ? AND start_utc >= ?')
       .all(series.id, booking.start_utc) as BookingRow[];
-    if (body.busId !== booking.bus_id) {
+    if (body.busId !== booking.bus_id || body.quantity !== booking.quantity) {
       const conflicts: ConflictRow[] = [];
+      let minAvailable: number | undefined;
       for (const occ of affected) {
-        conflicts.push(
-          ...findConflicts(
-            { busId: body.busId, start: occ.start_utc, end: occ.end_utc },
-            { seriesId: series.id }
-          )
+        const { available, overlapping } = checkAvailability(
+          { busId: body.busId, start: occ.start_utc, end: occ.end_utc },
+          totalQuantity,
+          { seriesId: series.id }
         );
-        if (conflicts.length >= 5) break;
+        if (available < body.quantity) {
+          conflicts.push(...overlapping);
+          minAvailable = minAvailable === undefined ? available : Math.min(minAvailable, available);
+          if (conflicts.length >= 5) break;
+        }
       }
-      if (conflicts.length > 0) throw new ConflictError(conflicts.slice(0, 5));
+      if (conflicts.length > 0) throw new ConflictError(conflicts.slice(0, 5), minAvailable, body.quantity);
     }
     db.prepare(
-      `UPDATE bookings SET bus_id = ?, title = ?, notes = ?, updated_at = ?
+      `UPDATE bookings SET bus_id = ?, title = ?, quantity = ?, notes = ?, updated_at = ?
        WHERE series_id = ? AND start_utc >= ?`
-    ).run(body.busId, body.title, body.notes ?? null, nowUtc(), series.id, booking.start_utc);
+    ).run(body.busId, body.title, body.quantity, body.notes ?? null, nowUtc(), series.id, booking.start_utc);
     return affected.length;
   })();
 

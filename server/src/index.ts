@@ -70,7 +70,10 @@ async function main(): Promise<void> {
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof ConflictError) {
       return res.status(409).json({
-        error: 'Diese Ressource ist in dem Zeitraum bereits gebucht',
+        error:
+          err.available !== undefined && err.requested !== undefined
+            ? `Nur noch ${Math.max(err.available, 0)} verfügbar (angefragt: ${err.requested})`
+            : 'Diese Ressource ist in dem Zeitraum bereits gebucht',
         conflicts: err.conflicts.map((c) => ({
           id: c.id,
           title: c.title,
@@ -78,6 +81,8 @@ async function main(): Promise<void> {
           end: c.end_utc,
           userDisplayName: c.display_name,
         })),
+        available: err.available,
+        requested: err.requested,
       });
     }
     if (err instanceof ZodError) {

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { api, ApiError } from '../api/client';
 import type { Booking, Bus, Conflict } from '../api/types';
 import { formatRange, toLocalInput } from '../format';
@@ -39,6 +40,7 @@ export function BookingDialog({ buses, state, onClose, onSaved }: Props) {
     return toLocalInput(d);
   });
   const [notes, setNotes] = useState(editing?.notes ?? '');
+  const [quantity, setQuantity] = useState(editing?.quantity ?? 1);
   const [recurring, setRecurring] = useState(false);
   const [interval, setInterval] = useState(1);
   const [until, setUntil] = useState('');
@@ -46,6 +48,33 @@ export function BookingDialog({ buses, state, onClose, onSaved }: Props) {
   const [conflicts, setConflicts] = useState<Conflict[]>([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+
+  const selectedBus = buses.find((b) => b.id === busId);
+  const needsQuantity = selectedBus?.category === 'geraet' && (selectedBus.quantity ?? 1) > 1;
+
+  const selectBus = (id: number) => {
+    setBusId(id);
+    setQuantity(1);
+  };
+
+  const startIso = useMemo(() => {
+    const ms = Date.parse(startLocal);
+    return Number.isNaN(ms) ? null : new Date(ms).toISOString();
+  }, [startLocal]);
+  const endIso = useMemo(() => {
+    const ms = Date.parse(endLocal);
+    return Number.isNaN(ms) ? null : new Date(ms).toISOString();
+  }, [endLocal]);
+
+  const { data: availability } = useQuery({
+    queryKey: ['availability', busId, startIso, endIso, editing?.id],
+    queryFn: () =>
+      api.get<{ total: number; available: number }>(
+        `/buses/${busId}/availability?start=${startIso}&end=${endIso}` +
+          (editing ? `&excludeBookingId=${editing.id}` : '')
+      ),
+    enabled: needsQuantity && startIso !== null && endIso !== null,
+  });
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +87,7 @@ export function BookingDialog({ buses, state, onClose, onSaved }: Props) {
         title,
         start: new Date(startLocal).toISOString(),
         end: new Date(endLocal).toISOString(),
+        quantity: needsQuantity ? quantity : 1,
         notes: notes.trim() || null,
       };
       if (editing) {
@@ -71,7 +101,7 @@ export function BookingDialog({ buses, state, onClose, onSaved }: Props) {
       onSaved();
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
-        const data = err.data as { conflicts?: Conflict[] };
+        const data = err.data as { conflicts?: Conflict[]; available?: number; requested?: number };
         setConflicts(data.conflicts ?? []);
         setError(err.message);
       } else {
@@ -89,7 +119,7 @@ export function BookingDialog({ buses, state, onClose, onSaved }: Props) {
           <span className="label">Ressource</span>
           <select
             value={busId}
-            onChange={(e) => setBusId(Number(e.target.value))}
+            onChange={(e) => selectBus(Number(e.target.value))}
             required
             className="input"
           >
@@ -100,6 +130,26 @@ export function BookingDialog({ buses, state, onClose, onSaved }: Props) {
             ))}
           </select>
         </label>
+
+        {needsQuantity && selectedBus && (
+          <label className="block">
+            <span className="label">Menge</span>
+            <input
+              type="number"
+              min={1}
+              max={selectedBus.quantity ?? undefined}
+              value={quantity}
+              onChange={(e) => setQuantity(Number(e.target.value))}
+              required
+              className="input"
+            />
+            {availability && (
+              <p className={`mt-1 text-sm ${quantity > availability.available ? 'text-red-600' : 'text-gray-500'}`}>
+                {availability.available} von {availability.total} im gewählten Zeitraum verfügbar
+              </p>
+            )}
+          </label>
+        )}
 
         <label className="block">
           <span className="label">Zweck</span>

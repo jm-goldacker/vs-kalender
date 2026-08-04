@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../db';
 import { requireAdmin } from '../middleware/auth';
+import { checkAvailability } from '../services/conflicts';
+import { normalizeUtc } from '../time';
 import type { BusDto } from '../types';
 
 interface BusRow {
@@ -12,6 +14,7 @@ interface BusRow {
   seats: number | null;
   color: string;
   is_active: number;
+  quantity: number | null;
 }
 
 const busSchema = z
@@ -20,6 +23,7 @@ const busSchema = z
     category: z.enum(['fahrzeug', 'geraet']).default('fahrzeug'),
     licensePlate: z.string().trim().max(20).nullish(),
     seats: z.number().int().min(1).max(200).nullish(),
+    quantity: z.number().int().min(1).max(100000).nullish(),
     color: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Ungültige Farbe'),
   })
   .superRefine((val, ctx) => {
@@ -39,6 +43,13 @@ const busSchema = z
         });
       }
     }
+    if (val.category === 'geraet' && !val.quantity) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['quantity'],
+        message: 'Für Geräte ist die Anzahl erforderlich',
+      });
+    }
   });
 
 function toDto(row: BusRow): BusDto {
@@ -48,12 +59,13 @@ function toDto(row: BusRow): BusDto {
     category: row.category,
     licensePlate: row.license_plate,
     seats: row.seats,
+    quantity: row.quantity,
     color: row.color,
     isActive: row.is_active === 1,
   };
 }
 
-/** Geräte tragen weder Kennzeichen noch Sitzplätze */
+/** Geräte tragen weder Kennzeichen noch Sitzplätze, Fahrzeuge keine Stückzahl */
 function normalized(body: z.infer<typeof busSchema>) {
   const geraet = body.category === 'geraet';
   return {
@@ -61,6 +73,7 @@ function normalized(body: z.infer<typeof busSchema>) {
     category: body.category,
     licensePlate: geraet ? null : (body.licensePlate ?? null),
     seats: geraet ? null : (body.seats ?? null),
+    quantity: geraet ? (body.quantity ?? null) : null,
     color: body.color,
   };
 }
@@ -81,9 +94,9 @@ busesRouter.post('/', requireAdmin, (req, res) => {
   const body = normalized(busSchema.parse(req.body));
   const info = db
     .prepare(
-      'INSERT INTO buses (name, category, license_plate, seats, color) VALUES (?, ?, ?, ?, ?)'
+      'INSERT INTO buses (name, category, license_plate, seats, quantity, color) VALUES (?, ?, ?, ?, ?, ?)'
     )
-    .run(body.name, body.category, body.licensePlate, body.seats, body.color);
+    .run(body.name, body.category, body.licensePlate, body.seats, body.quantity, body.color);
   const row = db.prepare('SELECT * FROM buses WHERE id = ?').get(info.lastInsertRowid) as BusRow;
   res.status(201).json(toDto(row));
 });
@@ -95,13 +108,14 @@ busesRouter.put('/:id', requireAdmin, (req, res) => {
   const parsed = busSchema.and(z.object({ isActive: z.boolean().optional() })).parse(req.body);
   const body = normalized(parsed);
   db.prepare(
-    `UPDATE buses SET name = ?, category = ?, license_plate = ?, seats = ?, color = ?, is_active = ?
+    `UPDATE buses SET name = ?, category = ?, license_plate = ?, seats = ?, quantity = ?, color = ?, is_active = ?
      WHERE id = ?`
   ).run(
     body.name,
     body.category,
     body.licensePlate,
     body.seats,
+    body.quantity,
     body.color,
     parsed.isActive === undefined ? row.is_active : parsed.isActive ? 1 : 0,
     id
@@ -116,4 +130,21 @@ busesRouter.delete('/:id', requireAdmin, (req, res) => {
   if (!row) return res.status(404).json({ error: 'Ressource nicht gefunden' });
   db.prepare('UPDATE buses SET is_active = 0 WHERE id = ?').run(id);
   res.json({ ok: true });
+});
+
+/** Freie Stückzahl einer Ressource im gewählten Zeitraum, für die Live-Anzeige im Buchungsformular. */
+busesRouter.get('/:id/availability', (req, res) => {
+  const id = Number(req.params.id);
+  const row = db.prepare('SELECT * FROM buses WHERE id = ?').get(id) as BusRow | undefined;
+  if (!row) return res.status(404).json({ error: 'Ressource nicht gefunden' });
+
+  const start = normalizeUtc(String(req.query.start ?? ''));
+  const end = normalizeUtc(String(req.query.end ?? ''));
+  const excludeBookingId = req.query.excludeBookingId
+    ? Number(req.query.excludeBookingId)
+    : undefined;
+
+  const total = row.quantity ?? 1;
+  const { available } = checkAvailability({ busId: id, start, end }, total, { bookingId: excludeBookingId });
+  res.json({ total, available });
 });

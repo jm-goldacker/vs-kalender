@@ -16,6 +16,7 @@ export interface BusDto {
   category: ResourceCategory;
   licensePlate: string | null;
   seats: number | null;
+  quantity: number | null;
   color: string;
   isActive: boolean;
 }
@@ -29,9 +30,11 @@ export interface BookingDto {
   end: string;
   seriesId: string | null;
   notes: string | null;
+  quantity: number;
   userDisplayName: string;
   busName: string;
   busColor: string;
+  busQuantity: number | null;
 }
 
 export interface ConflictDto {

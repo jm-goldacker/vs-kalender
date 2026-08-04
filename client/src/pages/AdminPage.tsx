@@ -190,6 +190,7 @@ function BusForm({ bus, onClose, onSaved }: { bus: Bus | null; onClose: () => vo
   const [category, setCategory] = useState<Bus['category']>(bus?.category ?? 'fahrzeug');
   const [licensePlate, setLicensePlate] = useState(bus?.licensePlate ?? '');
   const [seats, setSeats] = useState(bus?.seats ?? 9);
+  const [quantity, setQuantity] = useState(bus?.quantity ?? 1);
   const [color, setColor] = useState(bus?.color ?? '#2563eb');
   const [error, setError] = useState('');
 
@@ -203,6 +204,7 @@ function BusForm({ bus, onClose, onSaved }: { bus: Bus | null; onClose: () => vo
       category,
       licensePlate: fahrzeug ? licensePlate : null,
       seats: fahrzeug ? seats : null,
+      quantity: fahrzeug ? null : quantity,
       color,
     };
     try {
@@ -259,6 +261,21 @@ function BusForm({ bus, onClose, onSaved }: { bus: Bus | null; onClose: () => vo
               />
             </label>
           </div>
+        )}
+        {!fahrzeug && (
+          <label className="block">
+            <span className="label">Anzahl</span>
+            <input
+              type="number"
+              min={1}
+              max={100000}
+              value={quantity}
+              onChange={(e) => setQuantity(Number(e.target.value))}
+              required
+              placeholder="z.B. 27"
+              className="input"
+            />
+          </label>
         )}
         <label className="block">
           <span className="label">Farbe im Kalender</span>
@@ -326,7 +343,11 @@ function BusesTab() {
                 )}
               </p>
               <p className="truncate text-sm text-gray-500">
-                {bus.category === 'fahrzeug' ? `${bus.licensePlate} · ${bus.seats} Plätze` : 'Gerät'}
+                {bus.category === 'fahrzeug'
+                  ? `${bus.licensePlate} · ${bus.seats} Plätze`
+                  : bus.quantity
+                    ? `Gerät · ${bus.quantity} Stück`
+                    : 'Gerät'}
               </p>
             </div>
             <div className="flex gap-1.5">

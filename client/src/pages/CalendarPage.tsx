@@ -66,7 +66,7 @@ export function CalendarPage() {
         .filter((b) => !hiddenBuses.has(b.busId))
         .map((b) => ({
           id: String(b.id),
-          title: `${b.busName} · ${b.title}${b.seriesId ? ' ↻' : ''} (${b.userDisplayName})`,
+          title: `${b.busName}${b.quantity > 1 ? ` (${b.quantity}×)` : ''} · ${b.title}${b.seriesId ? ' ↻' : ''} (${b.userDisplayName})`,
           start: b.start,
           end: b.end,
           backgroundColor: b.busColor,
