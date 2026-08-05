@@ -6,6 +6,7 @@ import { Layout } from './components/Layout';
 import { LoginPage } from './pages/LoginPage';
 import { CalendarPage } from './pages/CalendarPage';
 import { AdminPage } from './pages/AdminPage';
+import { DatenschutzPage } from './pages/DatenschutzPage';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -32,6 +33,7 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/datenschutz" element={<DatenschutzPage />} />
             <Route
               path="/"
               element={

@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { api, ApiError } from '../api/client';
+import { LegalFooter } from './LegalFooter';
 import { Modal } from './Modal';
 
 function PasswordDialog({ onClose }: { onClose: () => void }) {
@@ -172,6 +173,7 @@ export function Layout({ children }: { children: ReactNode }) {
         )}
       </header>
       <main className="mx-auto max-w-6xl px-3 py-4 sm:px-4">{children}</main>
+      <LegalFooter />
       {showPassword && <PasswordDialog onClose={() => setShowPassword(false)} />}
     </div>
   );

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { ApiError } from '../api/client';
+import { LegalFooter } from '../components/LegalFooter';
 
 export function LoginPage() {
   const { user, loading, login } = useAuth();
@@ -64,6 +65,7 @@ export function LoginPage() {
           </button>
         </form>
       </div>
+      <LegalFooter />
     </div>
   );
 }
