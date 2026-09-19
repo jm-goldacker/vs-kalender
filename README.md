@@ -1,18 +1,22 @@
 # VS-Kalender
 
-Gemeinsamer Buchungskalender für Vereinsbusse. Jeder der ca. 15 Nutzer kann sehen, wann welcher Bus frei ist, und eigene Buchungen anlegen. Doppelbuchungen werden automatisch verhindert.
+Gemeinsamer Buchungskalender für Vereinsressourcen. Jeder der ca. 15 Nutzer kann sehen, wann welche Ressource frei ist, und eigene Buchungen anlegen. Doppelbuchungen werden automatisch verhindert.
 
 **Funktionen**
 
 - Login mit Benutzername + Passwort, Rollen: Admin und Mitglied
 - Beliebige Ressourcen buchbar: Fahrzeuge (mit Kennzeichen und Sitzplätzen) sowie Geräte wie Hüpfburg oder Bierzeltgarnitur, jeweils mit eigener Kalenderfarbe
+- Mengenbasierte Buchung für Geräte mit mehreren Exemplaren (z.B. mehrere Bierzeltgarnituren gleichzeitig buchbar)
 - Monats-, Wochen- und Listenansicht (auf dem Handy automatisch Listenansicht)
-- Konfliktprüfung: keine Ressource kann für überlappende Zeiträume doppelt gebucht werden
+- Konfliktprüfung: keine Ressource kann für überlappende Zeiträume doppelt gebucht werden; Verfügbarkeit im Buchungsformular wird live nachgeladen
 - Wöchentlich wiederkehrende Termine (mit Enddatum), einzelne Termine oder ganze Serien änderbar/löschbar
 - Jeder bearbeitet nur eigene Buchungen, Admins alle
-- Admin-Bereich für Benutzer- und Busverwaltung
+- Admin-Bereich für Benutzer- und Ressourcenverwaltung
+- Datenschutzhinweis und Impressum-Link auf Login- und Hauptseite
 
 **Technik:** React + FullCalendar + Tailwind (Frontend), Node.js/Express + SQLite (Backend), alles in einem Docker-Container.
+
+**Lizenz:** [GNU AGPLv3](LICENSE)
 
 📖 Für die Vereinsmitglieder gibt es eine bebilderte **[Benutzeranleitung](docs/BENUTZERANLEITUNG.md)**.
 
